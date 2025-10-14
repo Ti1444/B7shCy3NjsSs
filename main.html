@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarClash</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Шапка */
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            min-height: 60px;
+        }
+
+        .currency-container {
+            position: relative;
+            width: 80px;
+            height: 32px;
+        }
+
+        .currency {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 6px 10px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .currency.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .currency-amount {
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .currency-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Основной контент */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .welcome-text {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        /* Нижняя панель навигации */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.7rem;
+            padding: 8px 5px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 70px;
+        }
+
+        .nav-button.active {
+            color: #FFD700;
+            transform: translateY(-3px);
+        }
+
+        .nav-button.active .icon svg {
+            fill: #FFD700;
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+        }
+
+        .nav-button .icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button .icon svg {
+            width: 100%;
+            height: 100%;
+            fill: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover .icon {
+            transform: scale(1.1);
+        }
+
+        .nav-button.active .icon {
+            transform: scale(1.15);
+        }
+
+        /* Адаптация для маленьких экранов */
+        @media (max-height: 700px) {
+            .welcome-text {
+                font-size: 1.2rem;
+                margin-bottom: 20px;
+            }
+            
+            .header {
+                padding: 12px 15px;
+                min-height: 50px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .header {
+                padding: 10px 12px;
+            }
+            
+            .currency {
+                padding: 5px 8px;
+            }
+            
+            .currency-container {
+                width: 70px;
+            }
+            
+            .bottom-nav {
+                padding: 8px 10px;
+            }
+            
+            .nav-button {
+                font-size: 0.65rem;
+                padding: 6px 3px;
+                max-width: 65px;
+            }
+            
+            .nav-button .icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .currency-amount {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <div class="header">
+        <div class="currency-container">
+            <!-- TON -->
+            <div class="currency" id="tonBalanceElement">
+                <span class="currency-amount" id="tonBalance">0.00</span>
+                <div class="currency-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="#0088CC"/>
+                        <text x="12" y="16" text-anchor="middle" fill="white" font-size="12" font-weight="bold">T</text>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Stars -->
+            <div class="currency" id="starsBalanceElement">
+                <span class="currency-amount" id="starsBalance">0</span>
+                <div class="currency-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#FFD700"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="content">
+        <div class="welcome-text">Добро пожаловать в StarClash!</div>
+        <!-- Здесь будет основной контент страниц -->
+    </div>
+
+    <!-- Нижняя панель навигации -->
+    <div class="bottom-nav">
+        <!-- PvP -->
+        <button class="nav-button active" onclick="showPage('pvp')">
+            <div class="icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M17 4v6l5 5-5 5v6H7v-6l-5-5 5-5V4h10zm-4 14h-2v-6l-4.5 4.5-1.5-1.5 6-6 6 6-1.5 1.5L13 12v6z"/>
+                </svg>
+            </div>
+            <span>PvP</span>
+        </button>
+
+        <!-- Games -->
+        <button class="nav-button" onclick="showPage('games')">
+            <div class="icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                </svg>
+            </div>
+            <span>Games</span>
+        </button>
+
+        <!-- Stars -->
+        <button class="nav-button" onclick="showPage('stars')">
+            <div class="icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+            </div>
+            <span>Stars</span>
+        </button>
+
+        <!-- Mission -->
+        <button class="nav-button" onclick="showPage('mission')">
+            <div class="icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+            </div>
+            <span>Mission</span>
+        </button>
+
+        <!-- Profile -->
+        <button class="nav-button" onclick="showPage('profile')">
+            <div class="icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+            </div>
+            <span>Profile</span>
+        </button>
+    </div>
+
+    <script>
+        // Данные пользователя (временно заглушка)
+        let userData = {
+            balance: 1.50,
+            stars: 42,
+            level: 3
+        };
+
+        // Текущая активная страница
+        let currentPage = 'pvp';
+
+        // Функция для форматирования баланса TON
+        function formatBalance(amount) {
+            if (amount === 0) return '0.00';
+            if (amount >= 1000) {
+                return amount.toLocaleString('en-US', {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1
+                });
+            }
+            return amount.toFixed(2);
+        }
+
+        // Функция для обновления отображения баланса
+        function updateBalances() {
+            document.getElementById('tonBalance').textContent = formatBalance(userData.balance);
+            document.getElementById('starsBalance').textContent = Math.floor(userData.stars);
+        }
+
+        // Функция для показа/скрытия валют в зависимости от страницы
+        function updateCurrencyDisplay() {
+            const tonElement = document.getElementById('tonBalanceElement');
+            const starsElement = document.getElementById('starsBalanceElement');
+
+            // Сначала скрываем все
+            tonElement.classList.remove('show');
+            starsElement.classList.remove('show');
+
+            // Показываем нужные валюты в зависимости от страницы
+            switch(currentPage) {
+                case 'pvp':
+                case 'games':
+                    tonElement.classList.add('show');
+                    break;
+                case 'stars':
+                case 'mission':
+                    starsElement.classList.add('show');
+                    break;
+                case 'profile':
+                    // Ничего не показываем
+                    break;
+            }
+        }
+
+        // Функция для переключения страниц
+        function showPage(page) {
+            // Обновляем текущую страницу
+            currentPage = page;
+            
+            // Снимаем активный класс со всех кнопок
+            document.querySelectorAll('.nav-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Добавляем активный класс на нажатую кнопку
+            event.currentTarget.classList.add('active');
+            
+            // Обновляем отображение валют
+            updateCurrencyDisplay();
+            
+            console.log('Переход на страницу:', page);
+            // Здесь будет логика загрузки контента страницы
+        }
+
+        // Функция для загрузки данных пользователя
+        function loadUserData() {
+            // Здесь будет загрузка данных из JSON файла или API
+            updateBalances();
+        }
+
+        // Инициализация
+        function init() {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+            
+            // Загружаем данные пользователя
+            loadUserData();
+            
+            // Устанавливаем тему
+            const themeParams = Telegram.WebApp.themeParams;
+            document.body.style.backgroundColor = themeParams.bg_color || '#000000';
+            
+            // Инициализируем отображение валют для стартовой страницы
+            updateCurrencyDisplay();
+        }
+
+        // Запускаем при загрузке страницы
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
