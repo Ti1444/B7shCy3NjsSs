@@ -1,88 +1,348 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Мое мини-приложение</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarClash</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            text-align: center;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        .btn {
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            padding: 12px 24px;
-            margin: 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .result {
-            margin-top: 20px;
+
+        body {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
             padding: 15px;
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            border-radius: 10px;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 10px;
+            max-width: 260px;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #FFD700, #FFFFFF, #FFD700);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shine 2s ease-in-out infinite;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+
+        @keyframes shine {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .sticker-container {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            padding: 8px;
+        }
+
+        .sticker {
+            font-size: 3rem;
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #FFD700, #FFFFFF, #FFD700);
+            background-size: 200% 100%;
+            border-radius: 8px;
+            animation: progress-glow 1.5s ease-in-out infinite;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes progress-glow {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .percentage {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 6px;
+        }
+
+        .tip {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 12px;
+            font-style: italic;
+            line-height: 1.2;
+            min-height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #FFD700;
+            border-radius: 50%;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-80px) rotate(360deg);
+            }
+        }
+
+        /* Адаптация для очень маленьких экранов */
+        @media (max-height: 600px) {
+            .logo {
+                font-size: 2rem;
+                margin-bottom: 15px;
+            }
+            
+            .sticker-container {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 15px;
+            }
+            
+            .sticker {
+                font-size: 2.5rem;
+            }
+            
+            .loading-text {
+                font-size: 0.9rem;
+                margin-bottom: 10px;
+            }
+            
+            .tip {
+                font-size: 0.75rem;
+                min-height: 24px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .logo {
+                font-size: 1.8rem;
+                letter-spacing: -1px;
+            }
+            
+            .loading-container {
+                padding: 5px;
+                max-width: 240px;
+            }
+            
+            .sticker-container {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .sticker {
+                font-size: 2rem;
+            }
+        }
+
+        /* Для iPhone SE и подобных */
+        @media (max-width: 320px) and (max-height: 568px) {
+            .logo {
+                font-size: 1.7rem;
+                margin-bottom: 12px;
+            }
+            
+            .sticker-container {
+                width: 65px;
+                height: 65px;
+                margin-bottom: 12px;
+            }
+            
+            .loading-text {
+                font-size: 0.85rem;
+                margin-bottom: 8px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Привет! 👋</h1>
-        <p>Это мое первое мини-приложение в Telegram</p>
-        
-        <button id="mainBtn" class="btn">Показать информацию</button>
-        <button id="closeBtn" class="btn">Закрыть</button>
-        
-        <div id="result" class="result"></div>
-    </div>
+    <div class="particles" id="particles"></div>
     
+    <div class="loading-container">
+        <div class="logo">STARCLASH</div>
+        
+        <div class="sticker-container">
+            <div class="sticker">⭐</div>
+        </div>
+        
+        <div class="loading-text">Загрузка вселенной...</div>
+        
+        <div class="percentage" id="percentage">0%</div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="tip" id="tip">Подготовка к запуску...</div>
+    </div>
+
     <script>
-        // Инициализация Telegram Web App
-        let tg = window.Telegram.WebApp;
-        
-        // Расширяем на весь экран
-        tg.expand();
-        
-        // Получаем данные пользователя
-        let user = tg.initDataUnsafe.user;
-        
-        // Обновляем приветствие если есть данные пользователя
-        if (user) {
-            document.querySelector('h1').textContent = `Привет, ${user.first_name}!`;
-        }
-        
-        // Обработчики кнопок
-        document.getElementById('mainBtn').addEventListener('click', function() {
-            if (user) {
-                document.getElementById('result').innerHTML = `
-                    <h3>Информация о пользователе:</h3>
-                    <p>Имя: ${user.first_name}</p>
-                    <p>ID: ${user.id}</p>
-                    <p>Язык: ${user.language_code || 'Неизвестно'}</p>
-                `;
-            } else {
-                document.getElementById('result').innerHTML = `
-                    <p>Данные пользователя недоступны</p>
-                `;
+        // Советы для экрана загрузки
+        const tips = [
+            "Загружаем космические корабли...",
+            "Настраиваем игровые автоматы...",
+            "Подготавливаем PvP арену...",
+            "Запускаем кейс-систему...",
+            "Инициализируем мини-игры...",
+            "Проверяем подключение к блокчейну...",
+            "Загружаем рейтинги игроков...",
+            "Подготавливаем бонусы...",
+            "Оптимизируем графику...",
+            "Проверяем безопасность..."
+        ];
+
+        // Элементы DOM
+        const progressBar = document.getElementById('progressBar');
+        const percentageElement = document.getElementById('percentage');
+        const tipElement = document.getElementById('tip');
+        const particlesContainer = document.getElementById('particles');
+
+        // Создаем частицы
+        function createParticles() {
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.animationDelay = Math.random() * 3 + 's';
+                particle.style.animationDuration = (2 + Math.random() * 2) + 's';
+                particlesContainer.appendChild(particle);
             }
-        });
-        
-        document.getElementById('closeBtn').addEventListener('click', function() {
-            tg.close();
-        });
-        
-        // Используем тему Telegram
-        tg.setHeaderColor('secondary_bg_color');
-        tg.setBackgroundColor('secondary_bg_color');
+        }
+
+        // Рандомный совет
+        function setRandomTip() {
+            const randomTip = tips[Math.floor(Math.random() * tips.length)];
+            tipElement.textContent = randomTip;
+        }
+
+        // Симуляция загрузки
+        function simulateLoading() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    // Переходим к основному приложению после загрузки
+                    setTimeout(() => {
+                        window.location.href = 'main.html';
+                    }, 1000);
+                }
+                
+                // Обновляем прогресс
+                progressBar.style.width = progress + '%';
+                percentageElement.textContent = Math.round(progress) + '%';
+                
+                // Меняем совет каждые 20%
+                if (progress % 20 < 5) {
+                    setRandomTip();
+                }
+                
+            }, 200);
+        }
+
+        // Инициализация
+        function init() {
+            // Инициализируем Telegram Web App
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+            
+            // Устанавливаем тему
+            const themeParams = Telegram.WebApp.themeParams;
+            document.body.style.backgroundColor = themeParams.bg_color || '#000000';
+            
+            // Создаем частицы
+            createParticles();
+            
+            // Устанавливаем начальные значения
+            setRandomTip();
+            
+            // Запускаем загрузку
+            simulateLoading();
+        }
+
+        // Запускаем при загрузке страницы
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
