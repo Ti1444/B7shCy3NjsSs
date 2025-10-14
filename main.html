@@ -308,42 +308,6 @@
             color: #cccccc;
         }
 
-        /* Стили для игр */
-        .games-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .game-card {
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 215, 0, 0.2);
-        }
-
-        .game-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        .game-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #FFD700;
-        }
-
         /* Нижняя панель навигации */
         .bottom-nav {
             position: fixed;
@@ -408,25 +372,6 @@
 
         .nav-button.active .icon {
             transform: scale(1.15);
-        }
-
-        /* Уведомления */
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #00AA00;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .notification.show {
-            opacity: 1;
         }
 
         /* Адаптация для маленьких экранов */
@@ -504,9 +449,9 @@
     </div>
 
     <!-- Основной контент -->
-    <div class="content" id="mainContent">
+    <div class="content">
         <div class="welcome-text">Добро пожаловать в StarClash!</div>
-        <!-- Контент будет загружаться динамически -->
+        <!-- Здесь будет основной контент страниц -->
     </div>
 
     <!-- Нижняя панель навигации -->
@@ -562,18 +507,12 @@
         </button>
     </div>
 
-    <!-- Уведомление -->
-    <div class="notification" id="notification"></div>
-
     <script>
-        // Данные пользователя
+        // Данные пользователя (будут загружены из JSON)
         let userData = {
             balance: 0.00,
             stars: 0,
-            level: 1,
-            gamesPlayed: 0,
-            gamesWon: 0,
-            referrals: 0
+            level: 1
         };
 
         // Текущая активная страница
@@ -585,12 +524,13 @@
                 const response = await fetch('users_data.json');
                 const usersData = await response.json();
                 
+                // Получаем ID пользователя из Telegram Web App
                 const tgUser = Telegram.WebApp.initDataUnsafe.user;
                 if (tgUser && usersData[tgUser.id]) {
                     const user = usersData[tgUser.id];
                     userData = {
                         balance: user.BAL || 0.00,
-                        stars: user.ST || 0,
+                        stars: user.ST || 0,  // Новое поле ST
                         level: user.LEVEL || 1,
                         gamesPlayed: user.GAMES_PLAYED || 0,
                         gamesWon: user.GAMES_WON || 0,
@@ -631,9 +571,11 @@
             const tonElement = document.getElementById('tonBalanceElement');
             const starsElement = document.getElementById('starsBalanceElement');
 
+            // Сначала скрываем все
             tonElement.classList.remove('show');
             starsElement.classList.remove('show');
 
+            // Показываем нужные валюты в зависимости от страницы
             switch(currentPage) {
                 case 'pvp':
                 case 'games':
@@ -644,37 +586,43 @@
                     starsElement.classList.add('show');
                     break;
                 case 'profile':
+                    // Ничего не показываем
                     break;
             }
         }
 
         // Функция для переключения страниц
         function showPage(page) {
+            // Обновляем текущую страницу
             currentPage = page;
             
+            // Снимаем активный класс со всех кнопок
             document.querySelectorAll('.nav-button').forEach(btn => {
                 btn.classList.remove('active');
             });
             
+            // Добавляем активный класс на нажатую кнопку
             event.currentTarget.classList.add('active');
+            
+            // Обновляем отображение валют
             updateCurrencyDisplay();
             
+            console.log('Переход на страницу:', page);
+            
+            // Загружаем контент страницы
             loadPageContent(page);
         }
 
         // Функция загрузки контента страницы
         function loadPageContent(page) {
-            const contentElement = document.getElementById('mainContent');
+            const contentElement = document.querySelector('.content');
             
             switch(page) {
                 case 'pvp':
                     contentElement.innerHTML = `
                         <div class="welcome-text">PvP Режим</div>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <p style="margin-bottom: 20px; color: #cccccc;">Соревнуйтесь с другими игроками в реальном времени!</p>
-                            <button onclick="startPvP()" style="background: #FFD700; color: black; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; margin-top: 20px; cursor: pointer;">
-                                🎮 Найти противника
-                            </button>
+                        <div style="text-align: center;">
+                            <p>Соревнуйтесь с другими игроками!</p>
                         </div>
                     `;
                     break;
@@ -682,23 +630,8 @@
                 case 'games':
                     contentElement.innerHTML = `
                         <div class="welcome-text">Игры</div>
-                        <div class="games-grid">
-                            <div class="game-card" onclick="openGame('minesweeper')">
-                                <div class="game-icon">🎯</div>
-                                <div class="game-title">Сапер</div>
-                            </div>
-                            <div class="game-card" onclick="openGame('slots')">
-                                <div class="game-icon">🎰</div>
-                                <div class="game-title">Слоты</div>
-                            </div>
-                            <div class="game-card" onclick="openGame('plinko')">
-                                <div class="game-icon">🔴</div>
-                                <div class="game-title">Плинко</div>
-                            </div>
-                            <div class="game-card" onclick="openGame('rocket')">
-                                <div class="game-icon">🚀</div>
-                                <div class="game-title">Ракета</div>
-                            </div>
+                        <div style="text-align: center;">
+                            <p>Выберите игру!</p>
                         </div>
                     `;
                     break;
@@ -706,13 +639,8 @@
                 case 'stars':
                     contentElement.innerHTML = `
                         <div class="welcome-text">Звезды</div>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <div style="font-size: 48px; margin-bottom: 20px;">⭐</div>
-                            <div style="font-size: 24px; font-weight: bold; color: #FFD700; margin-bottom: 10px;">${userData.stars} звезд</div>
-                            <p style="color: #cccccc; margin-bottom: 20px;">Зарабатывайте звезды за достижения и миссии</p>
-                            <button onclick="showMissions()" style="background: rgba(255, 215, 0, 0.2); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.5); padding: 12px 25px; border-radius: 10px; font-weight: bold; cursor: pointer;">
-                                📋 Посмотреть миссии
-                            </button>
+                        <div style="text-align: center;">
+                            <p>Система звезд!</p>
                         </div>
                     `;
                     break;
@@ -720,21 +648,8 @@
                 case 'mission':
                     contentElement.innerHTML = `
                         <div class="welcome-text">Миссии</div>
-                        <div style="text-align: center; margin-top: 20px; padding: 0 20px;">
-                            <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 15px; padding: 20px; margin-bottom: 15px;">
-                                <div style="font-weight: bold; color: #FFD700; margin-bottom: 10px;">🎯 Ежедневная игра</div>
-                                <div style="color: #cccccc; margin-bottom: 15px;">Сыграйте 3 игры в Сапера</div>
-                                <div style="background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 5px;">
-                                    <div style="background: #FFD700; border-radius: 8px; padding: 5px; width: 30%;"></div>
-                                </div>
-                            </div>
-                            <div style="background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 15px; padding: 20px; margin-bottom: 15px;">
-                                <div style="font-weight: bold; color: #FFD700; margin-bottom: 10px;">👥 Пригласите друга</div>
-                                <div style="color: #cccccc; margin-bottom: 15px;">Пригласите 1 друга в бота</div>
-                                <div style="background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 5px;">
-                                    <div style="background: #FFD700; border-radius: 8px; padding: 5px; width: 0%;"></div>
-                                </div>
-                            </div>
+                        <div style="text-align: center;">
+                            <p>Выполняйте миссии!</p>
                         </div>
                     `;
                     break;
@@ -747,7 +662,7 @@
 
         // Функция загрузки страницы профиля
         async function loadProfilePage() {
-            const contentElement = document.getElementById('mainContent');
+            const contentElement = document.querySelector('.content');
             
             contentElement.innerHTML = `
                 <div class="profile-container">
@@ -830,23 +745,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="section">
-                        <div class="section-title">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/>
-                            </svg>
-                            НАСТРОЙКИ
-                        </div>
-                        <div class="action-buttons">
-                            <button class="action-button secondary" onclick="openSettings()">
-                                ⚙️ Настройки профиля
-                            </button>
-                            <button class="action-button secondary" onclick="showSupport()">
-                                💬 Поддержка
-                            </button>
-                        </div>
-                    </div>
                 </div>
             `;
             
@@ -886,56 +784,23 @@
             }
         }
 
-        // Функции действий
+        // Функции действий профиля
         function depositTON() {
-            showNotification('Функция пополнения скоро будет доступна!');
+            alert('Функция пополнения скоро будет доступна!');
         }
 
         function copyReferralLink() {
             const link = document.getElementById('referralLink').textContent;
             navigator.clipboard.writeText(link).then(() => {
-                showNotification('Ссылка скопирована!');
+                alert('Ссылка скопирована!');
             });
         }
 
-        function openSettings() {
-            showNotification('Настройки скоро будут доступны!');
-        }
-
-        function showSupport() {
-            showNotification('Связь с поддержкой скоро будет доступна!');
-        }
-
-        function startPvP() {
-            showNotification('Поиск противника...');
-        }
-
-        function openGame(game) {
-            if (game === 'minesweeper') {
-                window.open('index.html', '_blank');
-            } else {
-                showNotification('Игра скоро будет доступна!');
-            }
-        }
-
-        function showMissions() {
-            showPage('mission');
-        }
-
-        // Показать уведомление
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-        // Функция для обновления баланса в игре
+        // Функция для обновления баланса в игре (будет вызываться из игр)
         function updateGameBalance(winAmount) {
             console.log('Выигрыш в игре:', winAmount.toFixed(2), 'TON');
+            // Здесь будет отправка на сервер для обновления баланса
+            // Пока просто обновляем локально для демонстрации
             userData.balance += winAmount;
             updateBalances();
         }
@@ -943,6 +808,8 @@
         // Функция для обновления звезд в игре
         function updateGameStars(stars) {
             console.log('Получено звезд:', stars);
+            // Здесь будет отправка на сервер для обновления звезд
+            // Пока просто обновляем локально для демонстрации
             userData.stars += stars;
             updateBalances();
         }
@@ -952,12 +819,17 @@
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
             
+            // Загружаем данные пользователя
             await loadUserData();
+            
+            // Обновляем отображение балансов
             updateBalances();
             
+            // Устанавливаем тему
             const themeParams = Telegram.WebApp.themeParams;
             document.body.style.backgroundColor = themeParams.bg_color || '#000000';
             
+            // Инициализируем отображение валют для стартовой страницы
             updateCurrencyDisplay();
         }
 
