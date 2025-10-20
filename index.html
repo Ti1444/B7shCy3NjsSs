@@ -70,8 +70,10 @@
             padding: 8px;
         }
 
-        .sticker {
-            font-size: 3rem;
+        .animated-star {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
             filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.5));
         }
 
@@ -177,8 +179,9 @@
                 margin-bottom: 15px;
             }
             
-            .sticker {
-                font-size: 2.5rem;
+            .animated-star {
+                width: 65px;
+                height: 65px;
             }
             
             .loading-text {
@@ -208,8 +211,9 @@
                 height: 70px;
             }
             
-            .sticker {
-                font-size: 2rem;
+            .animated-star {
+                width: 60px;
+                height: 60px;
             }
         }
 
@@ -226,6 +230,11 @@
                 margin-bottom: 12px;
             }
             
+            .animated-star {
+                width: 55px;
+                height: 55px;
+            }
+            
             .loading-text {
                 font-size: 0.85rem;
                 margin-bottom: 8px;
@@ -240,7 +249,7 @@
         <div class="logo">STARCLASH</div>
         
         <div class="sticker-container">
-            <div class="sticker">⭐</div>
+            <img src="animations/a.webp" alt="Loading Star" class="animated-star">
         </div>
         
         <div class="loading-text">Загрузка вселенной...</div>
@@ -345,4 +354,4 @@
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
-</html>
+    </html>
